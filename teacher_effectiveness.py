@@ -1,22 +1,25 @@
-import cv2
 from deepface import DeepFace
 import csv
 from datetime import datetime
 import pandas as pd
 import os
 
-def evaluate_teacher_from_csv(csv_path="structured_log.csv"):
+def evaluate_teacher_from_csv():
     try:
-        df = pd.read_csv(csv_path)
+        df = pd.read_csv("structured_log.csv")
         latest_frame = df["Frame"].max()
         latest_data = df[df["Frame"] == latest_frame]
 
-        focus_percent = latest_data["Focus"].value_counts(normalize=True).get("Focused", 0.0) * 100
-        total_students = latest_data["Total Students"].iloc[0]
+        total_students = 3  # fixed total
+        focused_students = latest_data[latest_data["Focus"].str.lower() == "focused"]
+        focused_count = len(focused_students)
+
+        focus_percent = round((focused_count / total_students) * 100, 2)
+        status = "Effective" if focus_percent >= 50 else "Not Effective"
 
         return {
-            "focus_percent": round(focus_percent, 3),
-            "status": "Effective" if focus_percent >= 60 else "Needs Improvement",
+            "focus_percent": focus_percent,
+            "status": status,
             "total_students": total_students
         }
     except Exception as e:
